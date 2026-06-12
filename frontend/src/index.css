@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #A3E635;
+  --color-primary-light: #bef264;
+  --color-primary-dark: #84cc16;
+  --color-secondary: #0A0A0A;
+  --color-accent: #A3E635;
+  --color-background: #0A0A0A;
+  --color-surface: #18181B;
+  --color-border: #27272A;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #A1A1AA;
+  --color-success: #22C55E;
+  --color-warning: #FACC15;
+  --color-error: #EF4444;
+}
+
+@layer base {
+  body {
+    font-family: 'Outfit', sans-serif;
+    @apply bg-deepBg text-white antialiased overflow-hidden select-none;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(163, 230, 53, 0.6); /* Lime accent on hover */
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(24, 24, 27, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(39, 39, 42, 0.8);
+}
+
+.glass-card {
+  background: rgba(24, 24, 27, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(39, 39, 42, 0.6);
+}
+
+.glass-input {
+  background: rgba(24, 24, 27, 0.95);
+  border: 1px solid rgba(39, 39, 42, 0.8);
+  @apply focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all duration-300;
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseBorder {
+  0% {
+    box-shadow: 0 0 0 0 rgba(163, 230, 53, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(163, 230, 53, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(163, 230, 53, 0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-left {
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-border {
+  animation: pulseBorder 2s infinite;
+}
+
+.typing-dot {
+  @apply bg-primary w-2 h-2 rounded-full inline-block mx-0.5;
+  animation: bounceTyping 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounceTyping {
+  0%, 80%, 100% {
+    transform: scale(0.3);
+    opacity: 0.5;
+  } 40% {
+    transform: scale(1.0);
+    opacity: 1;
+  }
+}
+
+/* Chat view custom height calculations */
+.chat-box-height {
+  height: calc(100vh - 180px);
+}
+.sidebar-height {
+  height: calc(100vh - 200px);
+}
+.feed-height {
+  height: calc(100vh - 120px);
+}
