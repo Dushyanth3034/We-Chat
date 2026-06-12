@@ -9,8 +9,13 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
+
+  const handleGuestLogin = () => {
+    loginAsGuest();
+    navigate('/chats');
+  };
 
   useEffect(() => {
     const handleOAuthMessage = async (event) => {
@@ -160,6 +165,15 @@ const Login = () => {
               <path d="M12,6.12c1.32,0 2.5,0.45 3.44,1.35l2.58,-2.58C16.46,3.48 14.43,2.6 12,2.6c-3.46,0 -6.51,1.88 -8,4.84l3.97,3.1c0.71,-2.12 2.69,-3.7 5.03,-3.7z" fill="#EA4335" />
             </svg>
             Continue with Google
+          </button>
+
+          <button
+            type="button"
+            onClick={handleGuestLogin}
+            disabled={loading}
+            className="w-full bg-[#A3E635] hover:opacity-90 disabled:opacity-50 text-[#0A0A0A] font-semibold py-3.5 rounded-xl transition-all duration-300 shadow-md text-sm flex items-center justify-center gap-2"
+          >
+            <span>🚀 Log in as Guest</span>
           </button>
         </form>
 

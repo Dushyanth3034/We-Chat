@@ -30,7 +30,7 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
 
   // Mark story as viewed
   useEffect(() => {
-    if (!activeStory) return;
+    if (!activeStory || loggedInUser?.role === 'guest') return;
     const viewStory = async () => {
       try {
         await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/stories/${activeStory.id}/view`);
@@ -39,7 +39,7 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
       }
     };
     viewStory();
-  }, [activeStory]);
+  }, [activeStory, loggedInUser]);
 
   // Audio Playback Handler
   useEffect(() => {
@@ -154,6 +154,10 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
 
   // Reactions shortcuts
   const handleSendReaction = async (reaction) => {
+    if (loggedInUser?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/stories/${activeStory.id}/react`, {
         reactionType: reaction,
@@ -169,6 +173,10 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
   // Story Reply submission
   const handleSendReply = async (e) => {
     e.preventDefault();
+    if (loggedInUser?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!replyText.trim()) return;
 
     try {
@@ -184,6 +192,10 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
   };
 
   const handleDeleteStory = async () => {
+    if (loggedInUser?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!window.confirm('Delete this story segment permanently?')) return;
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/stories/${activeStory.id}`);

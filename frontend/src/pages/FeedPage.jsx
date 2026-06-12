@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import StoriesBar from '../components/StoriesBar';
 import { getAvatarUrl } from '../utils/avatar';
+import { MOCK_FEED_POSTS } from '../utils/demoData';
 
 const FeedPage = () => {
   const { user } = useAuth();
@@ -43,6 +44,12 @@ const FeedPage = () => {
 
   const fetchFeed = async (reset = false) => {
     setError('');
+    if (user?.role === 'guest') {
+      setPosts(MOCK_FEED_POSTS);
+      setHasMore(false);
+      setLoading(false);
+      return;
+    }
     const curPage = reset ? 0 : page;
     const offset = curPage * 8;
     try {
@@ -69,6 +76,10 @@ const FeedPage = () => {
   };
 
   const fetchTrending = async () => {
+    if (user?.role === 'guest') {
+      setTrending(MOCK_FEED_POSTS.slice(0, 3));
+      return;
+    }
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/posts/trending`);
       setTrending(res.data);
@@ -80,7 +91,7 @@ const FeedPage = () => {
   useEffect(() => {
     fetchFeed(true);
     fetchTrending();
-  }, []);
+  }, [user]);
 
   // Listen to Socket.IO events to refresh feed
   useEffect(() => {
@@ -114,6 +125,10 @@ const FeedPage = () => {
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!postContent.trim() && postImages.length === 0) return;
 
     setError('');
@@ -143,6 +158,10 @@ const FeedPage = () => {
   };
 
   const handleToggleLike = async (postId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/posts/${postId}/like`);
       
@@ -170,6 +189,10 @@ const FeedPage = () => {
 
   const handleCommentSubmit = async (e, postId) => {
     e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!newCommentText.trim()) return;
 
     try {
@@ -194,6 +217,10 @@ const FeedPage = () => {
   };
 
   const handleDeleteComment = async (postId, commentId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/posts/comment/${commentId}`);
       setPosts((prev) =>
@@ -210,6 +237,10 @@ const FeedPage = () => {
   };
 
   const handleDeletePost = async (postId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!window.confirm('Delete this moment post permanently?')) return;
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/posts/${postId}`);

@@ -30,6 +30,11 @@ const ProtectedRoute = () => {
     <div className="w-screen h-screen bg-darkBg text-white flex overflow-hidden">
       <Sidebar />
       <div className="flex-1 h-full flex flex-col relative overflow-hidden pb-16 md:pb-0">
+        {user?.role === 'guest' && (
+          <div className="bg-[#A3E635] text-[#0A0A0A] px-4 py-2 text-center text-sm font-semibold flex items-center justify-center gap-2 z-[40] shrink-0 select-none shadow-md">
+            <span>Demo Mode: Sign in to access all features.</span>
+          </div>
+        )}
         <Outlet />
         <CallOverlay />
       </div>

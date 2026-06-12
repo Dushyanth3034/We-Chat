@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { Search, UserPlus, UserCheck, UserMinus, MessageSquare, AlertCircle, X, ShieldAlert } from 'lucide-react';
 import { getAvatarUrl } from '../utils/avatar';
+import { MOCK_FRIENDS, MOCK_FRIEND_REQUESTS, MOCK_SUGGESTIONS } from '../utils/demoData';
 
 const FriendsPage = () => {
+  const { user } = useAuth();
   const [friendsList, setFriendsList] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -18,6 +21,13 @@ const FriendsPage = () => {
   const socket = useSocket();
 
   const fetchData = async () => {
+    if (user?.role === 'guest') {
+      setFriendsList(MOCK_FRIENDS);
+      setFriendRequests(MOCK_FRIEND_REQUESTS);
+      setSuggestions(MOCK_SUGGESTIONS);
+      setLoading(false);
+      return;
+    }
     try {
       const friendsRes = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/friends`);
       setFriendsList(friendsRes.data);
@@ -37,11 +47,11 @@ const FriendsPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [user]);
 
   // Listen for socket events to update requests in real-time
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || user?.role === 'guest') return;
 
     const handleFriendRequestUpdate = () => {
       fetchData();
@@ -52,13 +62,19 @@ const FriendsPage = () => {
     return () => {
       socket.off('new_notification', handleFriendRequestUpdate);
     };
-  }, [socket]);
+  }, [socket, user]);
 
   const handleSearch = async (e) => {
     const val = e.target.value;
     setSearchQuery(val);
     if (!val.trim()) {
       setSearchResults([]);
+      return;
+    }
+    if (user?.role === 'guest') {
+      // Return matching users from mock friends
+      const matches = MOCK_FRIENDS.filter(f => f.name.toLowerCase().includes(val.toLowerCase()) || f.email.toLowerCase().includes(val.toLowerCase()));
+      setSearchResults(matches);
       return;
     }
     try {
@@ -70,6 +86,10 @@ const FriendsPage = () => {
   };
 
   const handleSendRequest = async (receiverId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/friends/request`, { receiverId });
       fetchData();
@@ -82,6 +102,10 @@ const FriendsPage = () => {
   };
 
   const handleAcceptRequest = async (requestId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/friends/accept`, { requestId });
       fetchData();
@@ -91,6 +115,10 @@ const FriendsPage = () => {
   };
 
   const handleRejectRequest = async (requestId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/friends/reject`, { requestId });
       fetchData();
@@ -100,6 +128,10 @@ const FriendsPage = () => {
   };
 
   const handleRemoveFriend = async (friendId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!window.confirm('Are you sure you want to remove this friend?')) return;
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/friends/remove`, { friendId });

@@ -27,6 +27,10 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+      if (user?.role === 'guest') {
+        setStats({ friendCount: 3, postCount: 2 });
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/stats`);
         setStats(res.data);
@@ -47,6 +51,11 @@ const ProfilePage = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      setLoading(false);
+      return;
+    }
     setError('');
     setSuccess('');
     setLoading(true);

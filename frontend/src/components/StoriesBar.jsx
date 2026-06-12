@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { MOCK_STORIES } from '../utils/demoData';
 import StoryCreator from './StoryCreator';
 import StoryViewer from './StoryViewer';
 import { getAvatarUrl } from '../utils/avatar';
@@ -14,6 +15,23 @@ const StoriesBar = () => {
   const [activeUserIndex, setActiveUserIndex] = useState(0);
 
   const fetchStories = async () => {
+    if (user?.role === 'guest') {
+      const grouped = [];
+      MOCK_STORIES.forEach(story => {
+        let group = grouped.find(g => g.user.id === story.User.id);
+        if (!group) {
+          group = {
+            user: story.User,
+            stories: [],
+            hasUnread: true
+          };
+          grouped.push(group);
+        }
+        group.stories.push(story);
+      });
+      setUserGroups(grouped);
+      return;
+    }
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/stories`);
       setUserGroups(res.data);
@@ -24,7 +42,7 @@ const StoriesBar = () => {
 
   useEffect(() => {
     fetchStories();
-  }, []);
+  }, [user]);
 
   // Check if own user has stories
   const ownGroup = userGroups.find((g) => g.user.id === user.id);

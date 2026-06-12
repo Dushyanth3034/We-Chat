@@ -25,6 +25,19 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return;
       }
+      if (localStorage.getItem('wechat_is_guest') === 'true') {
+        setUser({
+          id: "guest-user",
+          name: "Guest User",
+          username: "Guest User",
+          email: "guest@demo.local",
+          role: "guest",
+          isVerified: true,
+          profileImage: null
+        });
+        setLoading(false);
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/me`);
         const userData = res.data;
@@ -72,10 +85,27 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
+  const loginAsGuest = () => {
+    const guestUser = {
+      id: "guest-user",
+      name: "Guest User",
+      username: "Guest User",
+      email: "guest@demo.local",
+      role: "guest",
+      isVerified: true,
+      profileImage: null
+    };
+    setToken('guest-token-placeholder');
+    setUser(guestUser);
+    localStorage.setItem('wechat_token', 'guest-token-placeholder');
+    localStorage.setItem('wechat_is_guest', 'true');
+  };
+
   const logout = () => {
     setToken('');
     setUser(null);
     localStorage.removeItem('wechat_token');
+    localStorage.removeItem('wechat_is_guest');
   };
 
   const updateUser = (updatedData) => {
@@ -83,7 +113,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginAsGuest, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

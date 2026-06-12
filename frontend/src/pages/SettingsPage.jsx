@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import { Shield, Bell, Lock, UserX, Check, ShieldAlert } from 'lucide-react';
 
 const SettingsPage = () => {
+  const { user, logout } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,6 +18,10 @@ const SettingsPage = () => {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     setError('');
     setSuccess('');
 
@@ -53,6 +59,41 @@ const SettingsPage = () => {
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Settings</h2>
           <p className="text-neutral-500 text-sm">Customize your WeChat experience and manage your security</p>
+        </div>
+
+        {user?.role === 'guest' && (
+          <div className="bg-[#A3E635]/10 border border-[#A3E635]/20 text-[#A3E635] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-[#A3E635]/5 animate-slide-up">
+            <div>
+              <h4 className="font-bold text-sm">You are currently exploring Demo Mode.</h4>
+              <p className="text-xs text-neutral-400 mt-0.5">Explore WeChat's features like chats, stories, feed, calls and friends with mock demo data.</p>
+            </div>
+            <button
+              onClick={() => logout()}
+              className="bg-[#A3E635] hover:opacity-95 text-[#0A0A0A] font-bold text-xs px-4 py-2 rounded-xl transition-all self-start sm:self-auto shrink-0"
+            >
+              Sign In
+            </button>
+          </div>
+        )}
+
+        {/* User Card */}
+        <div className="glass-panel rounded-3xl p-6 border border-neutral-800/80 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#A3E635]/10 flex items-center justify-center border border-[#A3E635]/25 text-[#A3E635] font-bold text-xl">
+              {user?.role === 'guest' ? 'GU' : user?.name?.substring(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-base">{user?.role === 'guest' ? 'Guest User' : user?.name}</h3>
+              <p className="text-[#A3E635] text-xs font-semibold mt-0.5">
+                {user?.role === 'guest' ? 'Demo Account' : 'Standard Account'}
+              </p>
+            </div>
+          </div>
+          {user?.role === 'guest' && (
+            <span className="text-[9px] uppercase tracking-wider font-bold bg-[#A3E635]/10 text-[#A3E635] px-3 py-1 rounded-full border border-[#A3E635]/20">
+              Demo Active
+            </span>
+          )}
         </div>
 
         {error && (

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { getAvatarUrl } from '../utils/avatar';
+import { MOCK_GROUPS } from '../utils/demoData';
 
 // WebRTC Local/Remote Video Stream Player helper
 const StreamPlayer = ({ stream, isLocal, name, isMuted }) => {
@@ -87,7 +88,17 @@ const CallOverlay = () => {
   const [groupParticipants, setGroupParticipants] = useState([]);
 
   useEffect(() => {
-    if (callState === 'ongoing' && isGroup && activeCallId) {
+    if (callState === 'ongoing' && isGroup) {
+      if (user?.role === 'guest') {
+        const mockGroup = MOCK_GROUPS.find(g => g.id === groupId) || MOCK_GROUPS[0];
+        setGroupParticipants(mockGroup.Members.map((m, idx) => ({
+          id: m.User.id || (idx + 101),
+          name: m.User.name,
+          profileImage: m.User.profileImage
+        })));
+        return;
+      }
+      if (!activeCallId) return;
       const fetchGroupDetails = async () => {
         try {
           // Fetch group call details to get participants lists
@@ -99,7 +110,7 @@ const CallOverlay = () => {
       };
       fetchGroupDetails();
     }
-  }, [callState, isGroup, activeCallId, groupId]);
+  }, [callState, isGroup, activeCallId, groupId, user]);
 
   // Handle group call chat Socket notifications
   useEffect(() => {

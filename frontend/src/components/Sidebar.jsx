@@ -18,6 +18,8 @@ import {
   X,
 } from 'lucide-react';
 
+import { MOCK_NOTIFICATIONS } from '../utils/demoData';
+
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const socket = useSocket();
@@ -27,6 +29,11 @@ const Sidebar = () => {
 
   useEffect(() => {
     const fetchNotificationsCount = async () => {
+      if (user?.role === 'guest') {
+        const unread = MOCK_NOTIFICATIONS.filter((n) => !n.isRead).length;
+        setUnreadNotifications(unread);
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/notifications`);
         const unread = res.data.filter((n) => !n.isRead).length;
@@ -35,8 +42,10 @@ const Sidebar = () => {
         console.error('Failed to fetch notifications:', err);
       }
     };
-    fetchNotificationsCount();
-  }, []);
+    if (user) {
+      fetchNotificationsCount();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!socket) return;

@@ -132,6 +132,10 @@ const StoryCreator = ({ onClose, onPublishSuccess }) => {
 
   const handlePublish = async (e) => {
     if (e) e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Sign in to create stories.");
+      return;
+    }
     setError('');
     setPublishing(true);
 

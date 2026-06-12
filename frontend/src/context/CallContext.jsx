@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
+import { MOCK_GROUPS } from '../utils/demoData';
 
 const CallContext = createContext(null);
 
@@ -50,6 +51,79 @@ export const CallProvider = ({ children }) => {
   // Ringtone Players
   const ringtoneRef = useRef(null);
   const dialtoneRef = useRef(null);
+
+  const guestCallTimeoutRef = useRef(null);
+
+  const createFakeStream = (type, label) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+    
+    let angle = 0;
+    const intervalId = setInterval(() => {
+      // Elegant animated background
+      const grad = ctx.createLinearGradient(0, 0, 640, 480);
+      grad.addColorStop(0, '#171717');
+      grad.addColorStop(1, '#0a0a0a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 640, 480);
+      
+      // Draw animated theme rings
+      ctx.strokeStyle = '#A3E635'; // WeChat theme green
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#A3E635';
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(320, 240, 60 + Math.sin(angle) * 15, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0; // reset
+      
+      // Draw label
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, 320, 210);
+      
+      ctx.fillStyle = '#a3a3a3';
+      ctx.font = '14px sans-serif';
+      ctx.fillText(`Simulated ${type === 'video' ? 'Camera' : 'Voice'} Feed`, 320, 245);
+      
+      ctx.fillStyle = '#A3E635';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText('• DEMO ACTIVE', 320, 280);
+      
+      angle += 0.15;
+    }, 100);
+
+    const stream = canvas.captureStream(30);
+    
+    // Create silent/dummy audio track
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const dst = audioCtx.createMediaStreamDestination();
+      osc.connect(dst);
+      const audioTrack = dst.stream.getAudioTracks()[0];
+      if (audioTrack) {
+        stream.addTrack(audioTrack);
+      }
+    } catch (e) {
+      console.warn('AudioContext not supported or blocked:', e);
+    }
+    
+    // Attach interval cleanup on track end
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack) {
+      const originalStop = videoTrack.stop;
+      videoTrack.stop = function() {
+        clearInterval(intervalId);
+        if (originalStop) originalStop.apply(this, arguments);
+      };
+    }
+    
+    return stream;
+  };
 
   // Sync references
   useEffect(() => {
@@ -117,7 +191,17 @@ export const CallProvider = ({ children }) => {
       screenStreamRef.current = null;
       setIsScreenSharing(false);
     }
+    if (remoteStream) {
+      remoteStream.getTracks().forEach(track => track.stop());
+    }
     setRemoteStream(null);
+
+    Object.keys(remoteStreams).forEach((key) => {
+      const stream = remoteStreams[key];
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    });
     setRemoteStreams({});
   };
 
@@ -366,6 +450,29 @@ export const CallProvider = ({ children }) => {
   // 1. Initiate 1-to-1 Audio/Video Call
   const startCall = async (targetUser, type) => {
     setErrorState(null);
+
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to start calls.");
+      setCallState('outgoing');
+      setCallType(type);
+      setIsGroup(false);
+      setRemoteUser(targetUser);
+      playSound('dialtone');
+
+      const fakeLocal = createFakeStream(type, 'You');
+      setLocalStream(fakeLocal);
+
+      const timeoutId = setTimeout(() => {
+        stopSounds();
+        setCallState('ongoing');
+        const fakeRemote = createFakeStream(type, targetUser.name);
+        setRemoteStream(fakeRemote);
+      }, 2500);
+
+      guestCallTimeoutRef.current = timeoutId;
+      return;
+    }
+
     setCallState('outgoing');
     setCallType(type);
     setIsGroup(false);
@@ -485,6 +592,15 @@ export const CallProvider = ({ children }) => {
   // 4. End Ongoing Call
   const endCall = async () => {
     stopSounds();
+    if (guestCallTimeoutRef.current) {
+      clearTimeout(guestCallTimeoutRef.current);
+      guestCallTimeoutRef.current = null;
+    }
+    if (user?.role === 'guest') {
+      setCallState('idle');
+      stopAllTracks();
+      return;
+    }
     if (callState === 'idle') return;
 
     if (isGroup) {
@@ -532,6 +648,28 @@ export const CallProvider = ({ children }) => {
   // 5. Start Group Call
   const startGroupCall = async (groupCallGroupId, type) => {
     setErrorState(null);
+
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to start calls.");
+      setCallState('ongoing');
+      setCallType(type);
+      setIsGroup(true);
+      setGroupId(groupCallGroupId);
+
+      const fakeLocal = createFakeStream(type, 'You');
+      setLocalStream(fakeLocal);
+
+      const mockGroup = MOCK_GROUPS.find(g => g.id === groupCallGroupId) || MOCK_GROUPS[0];
+      const fakeRemoteStreams = {};
+      mockGroup.Members.forEach((m, idx) => {
+        if (m.User.id !== 'guest-user') {
+          fakeRemoteStreams[idx + 101] = createFakeStream(type, m.User.name);
+        }
+      });
+      setRemoteStreams(fakeRemoteStreams);
+      return;
+    }
+
     setCallState('ongoing');
     setCallType(type);
     setIsGroup(true);
@@ -578,6 +716,29 @@ export const CallProvider = ({ children }) => {
   // 6. Join Existing Group Call
   const joinGroupCall = async (groupCallId, type, groupCallGroupId) => {
     setErrorState(null);
+
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to start calls.");
+      setCallState('ongoing');
+      setCallType(type);
+      setIsGroup(true);
+      setGroupId(groupCallGroupId);
+      setActiveCallId(groupCallId);
+
+      const fakeLocal = createFakeStream(type, 'You');
+      setLocalStream(fakeLocal);
+
+      const mockGroup = MOCK_GROUPS.find(g => g.id === groupCallGroupId) || MOCK_GROUPS[0];
+      const fakeRemoteStreams = {};
+      mockGroup.Members.forEach((m, idx) => {
+        if (m.User.id !== 'guest-user') {
+          fakeRemoteStreams[idx + 101] = createFakeStream(type, m.User.name);
+        }
+      });
+      setRemoteStreams(fakeRemoteStreams);
+      return;
+    }
+
     setCallState('ongoing');
     setCallType(type);
     setIsGroup(true);

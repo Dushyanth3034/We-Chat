@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { Heart, MessageSquare, UserPlus, ShieldAlert, Trash2, CheckCircle2 } from 'lucide-react';
+import { MOCK_NOTIFICATIONS } from '../utils/demoData';
 
 const NotificationsPage = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const socket = useSocket();
 
   const fetchNotifications = async () => {
+    if (user?.role === 'guest') {
+      setNotifications(MOCK_NOTIFICATIONS);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/notifications`);
       setNotifications(res.data);
@@ -25,6 +33,7 @@ const NotificationsPage = () => {
     fetchNotifications();
 
     const markAllRead = async () => {
+      if (user?.role === 'guest') return;
       try {
         await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/notifications/read-all`);
         if (socket) {
@@ -35,10 +44,10 @@ const NotificationsPage = () => {
       }
     };
     markAllRead();
-  }, [socket]);
+  }, [socket, user]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || user?.role === 'guest') return;
 
     const handleNewNotification = (notif) => {
       setNotifications((prev) => [notif, ...prev]);
@@ -49,9 +58,13 @@ const NotificationsPage = () => {
     return () => {
       socket.off('new_notification', handleNewNotification);
     };
-  }, [socket]);
+  }, [socket, user]);
 
   const handleDelete = async (id) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/notifications/${id}`);
       setNotifications((prev) => prev.filter((n) => n.id !== id));

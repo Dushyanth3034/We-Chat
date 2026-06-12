@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { getAvatarUrl } from '../utils/avatar';
 import { useCall } from '../context/CallContext';
+import { MOCK_FRIENDS, MOCK_DMS, MOCK_GROUPS } from '../utils/demoData';
 
 // E2E Utility imports
 import {
@@ -159,6 +160,16 @@ const ChatPage = () => {
   // Fetch Friends list
   useEffect(() => {
     const fetchFriends = async () => {
+      if (user?.role === 'guest') {
+        setFriends(MOCK_FRIENDS);
+        if (location.state?.startChatWith) {
+          const targetFriend = MOCK_FRIENDS.find(f => f.id === location.state.startChatWith);
+          if (targetFriend) setActiveFriend(targetFriend);
+        } else if (MOCK_FRIENDS.length > 0) {
+          setActiveFriend(MOCK_FRIENDS[0]);
+        }
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/friends`);
         setFriends(res.data);
@@ -175,11 +186,15 @@ const ChatPage = () => {
       }
     };
     fetchFriends();
-  }, [location]);
+  }, [location, user]);
 
   // Fetch Groups for forwarding list
   useEffect(() => {
     const fetchGroups = async () => {
+      if (user?.role === 'guest') {
+        setGroups(MOCK_GROUPS);
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/groups`);
         setGroups(res.data);
@@ -194,7 +209,7 @@ const ChatPage = () => {
 
   // Load E2E conversation key
   useEffect(() => {
-    if (!activeFriend || !user) return;
+    if (!activeFriend || !user || user?.role === 'guest') return;
 
     const loadConversationKey = async () => {
       const cacheKey = `dm_${activeFriend.id}`;
@@ -358,6 +373,12 @@ const ChatPage = () => {
     if (!activeFriend) return;
     
     const fetchMessages = async () => {
+      if (user?.role === 'guest') {
+        const mockMsgs = MOCK_DMS[activeFriend.id] || [];
+        setMessages(mockMsgs);
+        scrollToBottom();
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chats/messages/${activeFriend.id}`);
         setMessages(res.data);
@@ -369,10 +390,10 @@ const ChatPage = () => {
     fetchMessages();
 
     // Trigger read receipts
-    if (socket) {
+    if (socket && user?.role !== 'guest') {
       socket.emit('message_read', { receiverId: user.id, senderId: activeFriend.id });
     }
-  }, [activeFriend, socket]);
+  }, [activeFriend, socket, user]);
 
   // Listen to Socket.IO events
   useEffect(() => {
@@ -480,6 +501,10 @@ const ChatPage = () => {
 
   // Toggle reactions
   const handleToggleReaction = async (messageId, emoji) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/reactions/toggle`, { messageId, reaction: emoji });
       setMessages((prev) =>
@@ -492,6 +517,10 @@ const ChatPage = () => {
 
   // Forward message logic
   const handleForwardMessage = async () => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!forwardingMessage || forwardTargets.length === 0) return;
 
     const isEncrypted = forwardingMessage.message && forwardingMessage.message.startsWith('[E2E]:');
@@ -626,6 +655,10 @@ const ChatPage = () => {
 
   // Send voice note
   const handleSendVoiceNote = async (audioBlob, duration) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       const cacheKey = `dm_${activeFriend.id}`;
       const key = conversationKeys[cacheKey];
@@ -657,6 +690,10 @@ const ChatPage = () => {
   // Send message
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to send messages.");
+      return;
+    }
     if (!inputText.trim() && !fileAttachment) return;
 
     let messageToSend = inputText;
@@ -704,6 +741,10 @@ const ChatPage = () => {
 
   // Edit message
   const handleSaveEdit = async (messageId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     let encryptedText = editText;
     if (activeKey) {
       encryptedText = await encryptPayload(editText, activeKey);
@@ -727,6 +768,10 @@ const ChatPage = () => {
 
   // Delete message
   const handleDeleteMessage = async (messageId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chats/message/${messageId}`);
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));

@@ -44,10 +44,11 @@ function App() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/calls" element={<CallHistoryPage />} />
               
-              {/* Default Redirect to chats */}
-              <Route path="/" element={<Navigate to="/chats" replace />} />
               <Route path="*" element={<Navigate to="/chats" replace />} />
             </Route>
+
+            {/* Default Redirect to login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
           </CallProvider>
         </SocketProvider>

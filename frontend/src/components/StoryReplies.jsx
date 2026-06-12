@@ -9,6 +9,18 @@ const StoryReplies = ({ story, onClose }) => {
 
   useEffect(() => {
     const fetchViewers = async () => {
+      if (story.id.startsWith('story-') || localStorage.getItem('wechat_is_guest') === 'true') {
+        const mockViews = story.Views || story.StoryViews || [];
+        const mockViewers = mockViews.map((sv) => ({
+          id: sv.id,
+          viewerId: sv.User?.id,
+          viewedAt: sv.viewedAt || new Date().toISOString(),
+          Viewer: sv.User
+        }));
+        setViewers(mockViewers);
+        setLoading(false);
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/stories/${story.id}/viewers`);
         setViewers(res.data);
@@ -19,7 +31,10 @@ const StoryReplies = ({ story, onClose }) => {
       }
     };
     fetchViewers();
-  }, [story.id]);
+  }, [story.id, story.Views, story.StoryViews]);
+
+  const reactions = story.Reactions || story.StoryReactions || [];
+  const replies = story.Replies || story.StoryReplies || [];
 
   return (
     <div className="flex flex-col h-96 bg-neutral-900 border border-neutral-800 rounded-t-3xl overflow-hidden p-5 shadow-2xl relative">
@@ -45,13 +60,13 @@ const StoryReplies = ({ story, onClose }) => {
         </div>
         <div className="bg-neutral-950/45 p-3 rounded-xl text-center border border-neutral-850">
           <span className="block text-white font-bold text-base">
-            {story.Reactions?.length || 0}
+            {reactions.length}
           </span>
           <span className="text-[9px] text-neutral-500 uppercase tracking-wider">Reactions</span>
         </div>
         <div className="bg-neutral-950/45 p-3 rounded-xl text-center border border-neutral-850">
           <span className="block text-white font-bold text-base">
-            {story.Replies?.length || 0}
+            {replies.length}
           </span>
           <span className="text-[9px] text-neutral-500 uppercase tracking-wider">Replies</span>
         </div>
@@ -70,7 +85,7 @@ const StoryReplies = ({ story, onClose }) => {
             <div className="flex flex-col gap-2">
               {viewers.map((view) => {
                 // Find if this viewer has reactions on this story
-                const userReaction = story.Reactions?.find(r => r.userId === view.viewerId);
+                const userReaction = reactions.find(r => (r.userId === view.viewerId || r.User?.id === view.viewerId));
                 return (
                   <div key={view.id} className="flex items-center justify-between p-2 rounded-xl bg-neutral-950/25 border border-neutral-850/65">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -100,26 +115,29 @@ const StoryReplies = ({ story, onClose }) => {
         {/* Text Replies List */}
         <div>
           <span className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">Conversations & Replies</span>
-          {!story.Replies || story.Replies.length === 0 ? (
+          {replies.length === 0 ? (
             <p className="text-neutral-600 text-xs italic py-2">No replies yet.</p>
           ) : (
             <div className="flex flex-col gap-2">
-              {story.Replies.map((rep) => (
-                <div key={rep.id} className="flex items-start gap-2.5 p-2 rounded-xl bg-neutral-950/20 border border-neutral-850/40">
-                  <img
-                    src={getAvatarUrl(rep.Sender?.profileImage, rep.Sender?.name)}
-                    alt={rep.Sender?.name}
-                    className="w-7 h-7 rounded-full object-cover border border-neutral-800 shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center">
-                      <h5 className="text-burgundy-light text-[10px] font-bold truncate">{rep.Sender?.name}</h5>
-                      <span className="text-neutral-600 text-[8px]">{new Date(rep.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              {replies.map((rep) => {
+                const sender = rep.Sender || rep.User;
+                return (
+                  <div key={rep.id} className="flex items-start gap-2.5 p-2 rounded-xl bg-neutral-950/20 border border-neutral-850/40">
+                    <img
+                      src={getAvatarUrl(sender?.profileImage, sender?.name)}
+                      alt={sender?.name}
+                      className="w-7 h-7 rounded-full object-cover border border-neutral-800 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center">
+                        <h5 className="text-burgundy-light text-[10px] font-bold truncate">{sender?.name}</h5>
+                        <span className="text-neutral-600 text-[8px]">{new Date(rep.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p className="text-neutral-200 text-xs mt-0.5 whitespace-pre-wrap leading-relaxed">{rep.message}</p>
                     </div>
-                    <p className="text-neutral-200 text-xs mt-0.5 whitespace-pre-wrap leading-relaxed">{rep.message}</p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

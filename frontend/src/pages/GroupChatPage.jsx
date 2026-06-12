@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { getAvatarUrl } from '../utils/avatar';
 import { useCall } from '../context/CallContext';
+import { MOCK_GROUPS, MOCK_GROUP_MESSAGES, MOCK_FRIENDS } from '../utils/demoData';
 
 // E2E Utility imports
 import {
@@ -162,6 +163,13 @@ const GroupChatPage = () => {
 
   // Fetch groups
   const fetchGroups = async () => {
+    if (user?.role === 'guest') {
+      setGroups(MOCK_GROUPS);
+      if (MOCK_GROUPS.length > 0 && !activeGroup) {
+        setActiveGroup(MOCK_GROUPS[0]);
+      }
+      return;
+    }
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/groups`);
       setGroups(res.data);
@@ -178,6 +186,10 @@ const GroupChatPage = () => {
     
     // Fetch friends list for member additions
     const fetchFriends = async () => {
+      if (user?.role === 'guest') {
+        setFriends(MOCK_FRIENDS);
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/friends`);
         setFriends(res.data);
@@ -186,11 +198,11 @@ const GroupChatPage = () => {
       }
     };
     fetchFriends();
-  }, []);
+  }, [user]);
 
   // Load E2E conversation key
   useEffect(() => {
-    if (!activeGroup || !user) return;
+    if (!activeGroup || !user || user?.role === 'guest') return;
 
     const loadConversationKey = async () => {
       const cacheKey = `group_${activeGroup.id}`;
@@ -343,6 +355,11 @@ const GroupChatPage = () => {
     if (!activeGroup) return;
 
     const fetchMessages = async () => {
+      if (user?.role === 'guest') {
+        setMessages(MOCK_GROUP_MESSAGES[activeGroup.id] || []);
+        scrollToBottom();
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/groups/${activeGroup.id}/messages`);
         setMessages(res.data);
@@ -355,6 +372,10 @@ const GroupChatPage = () => {
 
     // Fetch full group details (with creator details)
     const fetchDetails = async () => {
+      if (user?.role === 'guest') {
+        setGroupDetails(activeGroup);
+        return;
+      }
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/groups/${activeGroup.id}`);
         setGroupDetails(res.data);
@@ -365,16 +386,16 @@ const GroupChatPage = () => {
     fetchDetails();
 
     // Subscribe to group socket room
-    if (socket) {
+    if (socket && user?.role !== 'guest') {
       socket.emit('join_group', activeGroup.id);
     }
 
     return () => {
-      if (socket && activeGroup) {
+      if (socket && activeGroup && user?.role !== 'guest') {
         socket.emit('leave_group', activeGroup.id);
       }
     };
-  }, [activeGroup, socket]);
+  }, [activeGroup, socket, user]);
 
   // Listen to Socket.IO group events
   useEffect(() => {
@@ -445,6 +466,10 @@ const GroupChatPage = () => {
 
   // Toggle reactions
   const handleToggleReaction = async (messageId, emoji) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/reactions/toggle`, { messageId, reaction: emoji });
       setMessages((prev) =>
@@ -457,6 +482,10 @@ const GroupChatPage = () => {
 
   // Forward message logic
   const handleForwardMessage = async () => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!forwardingMessage || forwardTargets.length === 0) return;
 
     const isEncrypted = forwardingMessage.message && forwardingMessage.message.startsWith('[E2E]:');
@@ -591,6 +620,10 @@ const GroupChatPage = () => {
 
   // Send voice note in group
   const handleSendVoiceNote = async (audioBlob, duration) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       const cacheKey = `group_${activeGroup.id}`;
       const key = conversationKeys[cacheKey];
@@ -619,6 +652,10 @@ const GroupChatPage = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to send messages.");
+      return;
+    }
     if (!inputText.trim() && !fileAttachment) return;
 
     let messageToSend = inputText;
@@ -665,6 +702,10 @@ const GroupChatPage = () => {
 
   // Delete message
   const handleDeleteMessage = async (messageId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chats/message/${messageId}`);
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
@@ -684,6 +725,10 @@ const GroupChatPage = () => {
   // Group creation modal submission
   const handleCreateGroupSubmit = async (e) => {
     e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!newGroupName.trim()) return;
 
     const formData = new FormData();
@@ -719,6 +764,10 @@ const GroupChatPage = () => {
   // Group Member additions
   const handleAddMembersSubmit = async (e) => {
     e.preventDefault();
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (friendsToAdd.length === 0 || !activeGroup) return;
 
     try {
@@ -739,6 +788,10 @@ const GroupChatPage = () => {
   };
 
   const handleLeaveGroup = async () => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!window.confirm('Are you sure you want to leave this group chat?')) return;
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/groups/members/remove`, {
@@ -757,6 +810,10 @@ const GroupChatPage = () => {
   };
 
   const handleRemoveMemberByAdmin = async (memberUserId) => {
+    if (user?.role === 'guest') {
+      alert("Demo Mode: Sign in to unlock this feature.");
+      return;
+    }
     if (!window.confirm('Remove this user from the group?')) return;
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/groups/members/remove`, {
