@@ -93,7 +93,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-darkBg px-4 py-8 md:p-8">
+    <div className="flex-1 overflow-y-auto bg-darkBg px-4 py-8 md:p-8">
       <div className="max-w-4xl mx-auto flex flex-col gap-6 animate-scale-up">
         {/* Header */}
         <div>

@@ -165,7 +165,7 @@ const GroupChatPage = () => {
   const fetchGroups = async () => {
     if (user?.role === 'guest') {
       setGroups(MOCK_GROUPS);
-      if (MOCK_GROUPS.length > 0 && !activeGroup) {
+      if (MOCK_GROUPS.length > 0 && !activeGroup && window.innerWidth >= 768) {
         setActiveGroup(MOCK_GROUPS[0]);
       }
       return;
@@ -173,7 +173,7 @@ const GroupChatPage = () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/groups`);
       setGroups(res.data);
-      if (res.data.length > 0 && !activeGroup) {
+      if (res.data.length > 0 && !activeGroup && window.innerWidth >= 768) {
         setActiveGroup(res.data[0]);
       }
     } catch (err) {
@@ -836,7 +836,7 @@ const GroupChatPage = () => {
   const activeTypingNames = Object.values(typingStatus).filter(Boolean);
 
   return (
-    <div className="flex-1 h-full flex bg-darkBg overflow-hidden relative">
+    <div className="flex-1 flex bg-darkBg overflow-hidden relative">
       
       {/* Left Groups Panel */}
       <div className={`w-full md:w-80 h-full border-r border-neutral-800/80 bg-deepBg flex flex-col shrink-0 ${activeGroup ? 'hidden md:flex' : 'flex'}`}>

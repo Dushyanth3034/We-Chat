@@ -165,7 +165,7 @@ const ChatPage = () => {
         if (location.state?.startChatWith) {
           const targetFriend = MOCK_FRIENDS.find(f => f.id === location.state.startChatWith);
           if (targetFriend) setActiveFriend(targetFriend);
-        } else if (MOCK_FRIENDS.length > 0) {
+        } else if (MOCK_FRIENDS.length > 0 && window.innerWidth >= 768) {
           setActiveFriend(MOCK_FRIENDS[0]);
         }
         return;
@@ -178,7 +178,7 @@ const ChatPage = () => {
         if (location.state?.startChatWith) {
           const targetFriend = res.data.find(f => f.id === location.state.startChatWith);
           if (targetFriend) setActiveFriend(targetFriend);
-        } else if (res.data.length > 0) {
+        } else if (res.data.length > 0 && window.innerWidth >= 768) {
           setActiveFriend(res.data[0]);
         }
       } catch (err) {
@@ -798,7 +798,7 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex-1 h-full flex bg-darkBg overflow-hidden">
+    <div className="flex-1 flex bg-darkBg overflow-hidden">
       {/* Left Chat Contacts Panel */}
       <div className={`w-full md:w-80 h-full border-r border-neutral-800/80 bg-deepBg flex flex-col shrink-0 ${activeFriend ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-neutral-800/60">

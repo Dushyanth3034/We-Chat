@@ -147,7 +147,7 @@ const FriendsPage = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-hidden bg-darkBg flex flex-col md:flex-row relative">
+    <div className="flex-1 overflow-hidden bg-darkBg flex flex-col md:flex-row relative">
       {/* Left Column: User lists and Search */}
       <div className="flex-1 h-full overflow-y-auto px-4 py-8 md:p-8 flex flex-col gap-6">
         <div>

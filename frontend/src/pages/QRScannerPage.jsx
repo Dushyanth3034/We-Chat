@@ -173,7 +173,7 @@ const QRScannerPage = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-darkBg px-4 py-8 md:p-8">
+    <div className="flex-1 overflow-y-auto bg-darkBg px-4 py-8 md:p-8">
       {/* Target canvas hidden element required by html5-qrcode file scan */}
       <div id="qr-file-dummy" className="hidden"></div>
 
