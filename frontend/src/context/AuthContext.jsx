@@ -25,7 +25,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return;
       }
-      if (localStorage.getItem('wechat_is_guest') === 'true') {
+      const hasGuestFlag = localStorage.getItem('wechat_is_guest') === 'true';
+      const isGuestToken = token === 'guest-token-placeholder';
+      if (hasGuestFlag && isGuestToken) {
         setUser({
           id: "guest-user",
           name: "Guest User",
@@ -81,6 +83,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = (newToken, userData) => {
+    localStorage.removeItem('wechat_is_guest');
     setToken(newToken);
     setUser(userData);
   };
@@ -112,8 +115,10 @@ export const AuthProvider = ({ children }) => {
     setUser((prev) => (prev ? { ...prev, ...updatedData } : null));
   };
 
+  const isGuest = user?.role === 'guest';
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginAsGuest, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginAsGuest, logout, updateUser, isGuest }}>
       {children}
     </AuthContext.Provider>
   );
