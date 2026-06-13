@@ -261,7 +261,7 @@ const FeedPage = () => {
   };
 
   return (
-    <div className="flex-1 h-screen overflow-hidden bg-darkBg flex flex-col lg:flex-row relative">
+    <div className="flex-1 h-full overflow-hidden bg-darkBg flex flex-col lg:flex-row relative">
       
       {/* Feed Stream pane */}
       <div className="flex-1 h-full overflow-y-auto pr-1">

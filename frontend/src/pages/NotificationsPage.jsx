@@ -88,7 +88,7 @@ const NotificationsPage = () => {
   };
 
   return (
-    <div className="flex-1 h-screen overflow-y-auto bg-darkBg px-4 py-8 md:p-8">
+    <div className="flex-1 h-full overflow-y-auto bg-darkBg px-4 py-8 md:p-8">
       <div className="max-w-3xl mx-auto flex flex-col gap-6 animate-scale-up">
         <div className="flex items-center justify-between border-b border-neutral-800/60 pb-4">
           <div>
