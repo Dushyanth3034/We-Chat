@@ -1027,7 +1027,7 @@ const GroupChatPage = () => {
                       className="w-8 h-8 rounded-full object-cover border border-neutral-800 shrink-0"
                     />
 
-                    <div className={`flex flex-col max-w-[70%] ${isMe ? 'items-end' : ''}`}>
+                    <div className={`flex flex-col max-w-[70%] min-w-0 ${isMe ? 'items-end' : ''}`}>
                       <div className="flex items-center justify-between gap-1.5 mb-1 w-full min-w-0">
                         <span className="text-[10px] text-neutral-500 font-semibold flex-1 truncate">{msg.Sender?.name}</span>
                         <span className="text-[9px] text-neutral-600 font-sans shrink-0">
