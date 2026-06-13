@@ -157,6 +157,25 @@ const ChatPage = () => {
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
+  // Intercept back button on mobile
+  useEffect(() => {
+    if (window.innerWidth >= 768) return;
+    if (!activeFriend) return;
+
+    // Push a dummy state to browser history
+    window.history.pushState({ isChatOpen: true }, '');
+
+    const handlePopState = (event) => {
+      setActiveFriend(null);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [activeFriend]);
+
   // Fetch Friends list
   useEffect(() => {
     const fetchFriends = async () => {
@@ -858,10 +877,16 @@ const ChatPage = () => {
           
           {/* Header */}
           <div className="bg-burgundy/95 px-6 py-4 flex items-center justify-between border-b border-burgundy-dark/25 shadow-md z-10">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <button
                 type="button"
-                onClick={() => setActiveFriend(null)}
+                onClick={() => {
+                  if (window.innerWidth < 768) {
+                    window.history.back();
+                  } else {
+                    setActiveFriend(null);
+                  }
+                }}
                 className="md:hidden p-1.5 -ml-2 text-secondary hover:bg-black/10 rounded-lg transition-colors shrink-0"
                 aria-label="Back to contacts list"
               >
@@ -870,21 +895,21 @@ const ChatPage = () => {
               <img
                 src={getAvatarUrl(activeFriend.profileImage, activeFriend.name)}
                 alt={activeFriend.name}
-                className="w-10 h-10 rounded-full object-cover border border-white/20"
+                className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
               />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-secondary text-sm font-semibold">{activeFriend.name}</h3>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="text-secondary text-sm font-semibold truncate flex-1">{activeFriend.name}</h3>
                   {activeKey && (
-                    <span className="flex items-center gap-0.5 text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold">
+                    <span className="flex items-center gap-0.5 text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold shrink-0">
                       <Shield size={10} /> Encrypted
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] text-secondary/80 block mt-0.5">
+                <span className="text-[10px] text-secondary/80 block mt-0.5 truncate">
                   {typingStatus[activeFriend.id] ? (
                     <span className="flex items-center gap-1">
-                      typing <span className="w-1.5 h-1.5 bg-secondary rounded-full animate-bounce"></span>
+                      typing <span className="w-1.5 h-1.5 bg-secondary rounded-full animate-bounce shrink-0"></span>
                     </span>
                   ) : onlineStatuses[activeFriend.id] === 'online' ? (
                     'Online'
@@ -896,7 +921,7 @@ const ChatPage = () => {
             </div>
 
             {/* Calling & Search actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => startCall(activeFriend, 'audio')}
                 className="p-2 bg-black/10 hover:bg-black/20 text-secondary rounded-xl transition-all"

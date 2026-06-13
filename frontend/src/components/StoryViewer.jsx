@@ -7,6 +7,14 @@ import { getAvatarUrl } from '../utils/avatar';
 
 const REACTION_SHORTCUTS = ['❤️', '😂', '😮', '😢', '👏', '🔥'];
 
+const getStoryImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${url}`;
+};
+
 const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStories }) => {
   const { user: loggedInUser } = useAuth();
   
@@ -26,6 +34,8 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
 
   const activeUserGroup = userStoriesList[currentUserIdx];
   const activeStory = activeUserGroup?.stories[currentStoryIdx];
+  const mediaType = activeStory?.mediaType || activeStory?.fileType;
+  const mediaUrl = activeStory?.mediaUrl || activeStory?.fileUrl;
   const isOwnStory = activeUserGroup?.user.id === loggedInUser.id;
 
   // Mark story as viewed
@@ -81,7 +91,7 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
 
     // Define slide duration
     let duration = 5000; // 5 seconds default
-    if (activeStory.mediaType === 'video' && videoRef.current) {
+    if (mediaType === 'video' && videoRef.current) {
       // If video is loaded, use its duration (up to 15s max or fallback)
       duration = videoRef.current.duration ? videoRef.current.duration * 1000 : 8000;
     }
@@ -278,18 +288,18 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
           onTouchStart={handlePressStart}
           onTouchEnd={handlePressEnd}
         >
-          {activeStory.mediaType === 'image' && (
+          {mediaType === 'image' && (
             <img
-              src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${activeStory.mediaUrl}`}
+              src={getStoryImageUrl(mediaUrl)}
               alt="Story attachment"
               className="w-full h-full object-contain pointer-events-none"
             />
           )}
 
-          {activeStory.mediaType === 'video' && (
+          {mediaType === 'video' && (
             <video
               ref={videoRef}
-              src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${activeStory.mediaUrl}`}
+              src={getStoryImageUrl(mediaUrl)}
               className="w-full h-full object-contain pointer-events-none"
               autoPlay
               muted={isMuted}
@@ -298,12 +308,21 @@ const StoryViewer = ({ userStoriesList, initialUserIndex, onClose, onRefreshStor
             />
           )}
 
-          {activeStory.mediaType === 'text' && (
+          {mediaType === 'text' && (
             <div
               className="absolute inset-0 flex items-center justify-center text-center p-8"
               style={{ backgroundColor: activeStory.backgroundColor }}
             >
               <p className="text-white text-xl font-bold leading-relaxed whitespace-pre-wrap select-none break-words max-w-sm drop-shadow-md">
+                {activeStory.text}
+              </p>
+            </div>
+          )}
+
+          {/* Text description overlay over image/video stories if text is present */}
+          {mediaType !== 'text' && activeStory.text && (
+            <div className="absolute inset-x-0 bottom-24 bg-black/40 backdrop-blur-sm px-6 py-3 text-center z-10">
+              <p className="text-white text-sm font-semibold leading-relaxed whitespace-pre-wrap select-none break-words max-w-sm mx-auto drop-shadow-md">
                 {activeStory.text}
               </p>
             </div>

@@ -4,7 +4,7 @@ export const MOCK_FRIENDS = [
     name: "Alex Johnson",
     email: "alex@demo.local",
     bio: "Senior Product Designer | Figma wizard 🎨",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
     status: "online"
   },
   {
@@ -12,7 +12,7 @@ export const MOCK_FRIENDS = [
     name: "Emma Wilson",
     email: "emma@demo.local",
     bio: "Frontend Engineer | Passionate about CSS & React ⚛️",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
     status: "online"
   },
   {
@@ -20,7 +20,7 @@ export const MOCK_FRIENDS = [
     name: "John Carter",
     email: "john@demo.local",
     bio: "WebRTC Engineer | Video & Audio Streaming Specialist 📞",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
     status: "online"
   },
   {
@@ -28,7 +28,7 @@ export const MOCK_FRIENDS = [
     name: "Sophia Brown",
     email: "sophia@demo.local",
     bio: "Full Stack Developer | Coffee enthusiast & dog mom 🐶☕",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
     status: "offline"
   },
   {
@@ -36,7 +36,7 @@ export const MOCK_FRIENDS = [
     name: "David Lee",
     email: "david@demo.local",
     bio: "Security Analyst | DevSecOps advocate 🔒",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150",
     status: "online"
   },
   {
@@ -44,7 +44,7 @@ export const MOCK_FRIENDS = [
     name: "Alice Smith",
     email: "alice@wechat.com",
     bio: "UX Designer | Design Thinker | Coffee Lover ☕",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
     status: "online"
   },
   {
@@ -52,7 +52,7 @@ export const MOCK_FRIENDS = [
     name: "Bob Johnson",
     email: "bob@wechat.com",
     bio: "Backend Engineer | Node.js & WebRTC enthusiast 💻",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=150",
     status: "online"
   },
   {
@@ -60,7 +60,7 @@ export const MOCK_FRIENDS = [
     name: "Charlie Brown",
     email: "charlie@wechat.com",
     bio: "Product Manager | Building the future of messaging 🚀",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150",
     status: "offline"
   },
   {
@@ -68,7 +68,7 @@ export const MOCK_FRIENDS = [
     name: "Sarah Jenkins",
     email: "sarah@demo.local",
     bio: "Developer Advocate | Open source contributor 🌟",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
     status: "online"
   },
   {
@@ -76,7 +76,7 @@ export const MOCK_FRIENDS = [
     name: "Liam Davis",
     email: "liam@demo.local",
     bio: "Systems Architect | Kubernetes & Docker lover 🐳",
-    profileImage: null,
+    profileImage: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150",
     status: "offline"
   }
 ];
@@ -85,7 +85,7 @@ export const MOCK_GROUPS = [
   {
     id: "group-1",
     groupName: "WeChat Dev Team",
-    groupImage: null,
+    groupImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=150",
     Members: [
       { id: 1, User: { id: 101, name: "Alice Smith" } },
       { id: 2, User: { id: 102, name: "Bob Johnson" } },
@@ -97,7 +97,7 @@ export const MOCK_GROUPS = [
   {
     id: "group-2",
     groupName: "Weekend Hangout",
-    groupImage: null,
+    groupImage: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=150",
     Members: [
       { id: 1, User: { id: 101, name: "Alice Smith" } },
       { id: 2, User: { id: "charlie-id", name: "Charlie Brown" } },
@@ -347,13 +347,13 @@ export const MOCK_FEED_POSTS = [
     Author: {
       id: "bob-id",
       name: "Bob Johnson",
-      profileImage: null,
+      profileImage: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=150",
       bio: "Backend Engineer | Node.js & WebRTC enthusiast 💻"
     },
     User: {
       id: "bob-id",
       name: "Bob Johnson",
-      profileImage: null,
+      profileImage: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=150",
       bio: "Backend Engineer | Node.js & WebRTC enthusiast 💻"
     }
   },
@@ -373,13 +373,13 @@ export const MOCK_FEED_POSTS = [
     Author: {
       id: "alice-id",
       name: "Alice Smith",
-      profileImage: null,
+      profileImage: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
       bio: "UX Designer | Design Thinker | Coffee Lover ☕"
     },
     User: {
       id: "alice-id",
       name: "Alice Smith",
-      profileImage: null,
+      profileImage: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
       bio: "UX Designer | Design Thinker | Coffee Lover ☕"
     }
   },
@@ -393,13 +393,13 @@ export const MOCK_FEED_POSTS = [
     Author: {
       id: "emma-id",
       name: "Emma Wilson",
-      profileImage: null,
+      profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
       bio: "Frontend Engineer | Passionate about CSS & React ⚛️"
     },
     User: {
       id: "emma-id",
       name: "Emma Wilson",
-      profileImage: null,
+      profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
       bio: "Frontend Engineer | Passionate about CSS & React ⚛️"
     }
   },
@@ -413,13 +413,13 @@ export const MOCK_FEED_POSTS = [
     Author: {
       id: "sophia-id",
       name: "Sophia Brown",
-      profileImage: null,
+      profileImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
       bio: "Full Stack Developer | Coffee enthusiast & dog mom 🐶☕"
     },
     User: {
       id: "sophia-id",
       name: "Sophia Brown",
-      profileImage: null,
+      profileImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
       bio: "Full Stack Developer | Coffee enthusiast & dog mom 🐶☕"
     }
   }
@@ -430,13 +430,13 @@ export const MOCK_STORIES = [
     id: "story-s1",
     text: "Reviewing the mobile responsiveness updates! 📱✨",
     backgroundColor: "linear-gradient(135deg, #4c0519 0%, #800020 50%, #0c0a09 100%)",
-    fileUrl: null,
-    fileType: "text",
+    fileUrl: "https://images.unsplash.com/photo-1547082299-de196ea013d6?w=800",
+    fileType: "image",
     createdAt: new Date().toISOString(),
     User: {
       id: "alice-id",
       name: "Alice Smith",
-      profileImage: null
+      profileImage: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150"
     },
     Views: [
       { id: 1, User: { id: "bob-id", name: "Bob Johnson" }, viewedAt: new Date(Date.now() - 600000).toISOString() },
@@ -470,13 +470,13 @@ export const MOCK_STORIES = [
     id: "story-s2",
     text: "Building WebRTC mesh network calling overlays 📞💻",
     backgroundColor: "linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #030712 100%)",
-    fileUrl: null,
-    fileType: "text",
+    fileUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800",
+    fileType: "image",
     createdAt: new Date().toISOString(),
     User: {
       id: "bob-id",
       name: "Bob Johnson",
-      profileImage: null
+      profileImage: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=150"
     },
     Views: [
       { id: 1, User: { id: "alice-id", name: "Alice Smith" }, viewedAt: new Date(Date.now() - 900000).toISOString() }
@@ -493,13 +493,13 @@ export const MOCK_STORIES = [
     id: "story-s3",
     text: "Enjoying the new Lime & Charcoal color scheme! 💚🖤",
     backgroundColor: "linear-gradient(135deg, #16a34a 0%, #15803d 50%, #052e16 100%)",
-    fileUrl: null,
-    fileType: "text",
+    fileUrl: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800",
+    fileType: "image",
     createdAt: new Date().toISOString(),
     User: {
       id: "alex-id",
       name: "Alex Johnson",
-      profileImage: null
+      profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
     },
     Views: [],
     StoryViews: [],
@@ -512,13 +512,13 @@ export const MOCK_STORIES = [
     id: "story-s4",
     text: "Late night refactoring... dynamic imports are sweet! 🚀🌙",
     backgroundColor: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e3a8a 100%)",
-    fileUrl: null,
-    fileType: "text",
+    fileUrl: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800",
+    fileType: "image",
     createdAt: new Date().toISOString(),
     User: {
       id: "emma-id",
       name: "Emma Wilson",
-      profileImage: null
+      profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
     },
     Views: [],
     StoryViews: [],
@@ -531,13 +531,13 @@ export const MOCK_STORIES = [
     id: "story-s5",
     text: "Audius API search caching works like a charm! 🎶✨",
     backgroundColor: "linear-gradient(135deg, #d97706 0%, #b45309 50%, #78350f 100%)",
-    fileUrl: null,
-    fileType: "text",
+    fileUrl: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800",
+    fileType: "image",
     createdAt: new Date().toISOString(),
     User: {
       id: "sophia-id",
       name: "Sophia Brown",
-      profileImage: null
+      profileImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150"
     },
     Views: [
       { id: 1, User: { id: "alex-id", name: "Alex Johnson" }, viewedAt: new Date(Date.now() - 100000).toISOString() }

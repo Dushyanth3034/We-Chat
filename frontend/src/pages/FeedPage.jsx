@@ -251,6 +251,14 @@ const FeedPage = () => {
     }
   };
 
+  const getPostImageUrl = (imgUrl) => {
+    if (!imgUrl) return '';
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+      return imgUrl;
+    }
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${imgUrl}`;
+  };
+
   const parseImages = (jsonStr) => {
     if (!jsonStr) return [];
     try {
@@ -361,10 +369,10 @@ const FeedPage = () => {
                           {images.map((imgUrl, idx) => (
                             <img
                               key={idx}
-                              src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${imgUrl}`}
+                              src={getPostImageUrl(imgUrl)}
                               alt={`Moment Attachment ${idx + 1}`}
                               className="w-full aspect-square object-cover rounded-xl border border-neutral-850 cursor-zoom-in hover:scale-[1.02] transition-transform duration-300"
-                              onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${imgUrl}`, '_blank')}
+                              onClick={() => window.open(getPostImageUrl(imgUrl), '_blank')}
                             />
                           ))}
                         </div>

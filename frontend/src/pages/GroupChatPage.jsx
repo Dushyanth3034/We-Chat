@@ -47,6 +47,16 @@ import ReactionSelector from '../components/ReactionSelector';
 import ReactionBadge from '../components/ReactionBadge';
 import SearchModal from '../components/SearchModal';
 
+const getGroupImageUrl = (groupImage, groupName) => {
+  if (!groupImage) {
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(groupName || 'Group')}`;
+  }
+  if (groupImage.startsWith('http://') || groupImage.startsWith('https://')) {
+    return groupImage;
+  }
+  return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${groupImage}`;
+};
+
 const fetchAndDecryptFile = async (fileUrl, conversationKeyStr) => {
   const response = await fetch(fileUrl);
   const encryptedBlob = await response.blob();
@@ -160,6 +170,26 @@ const GroupChatPage = () => {
   const fileInputRef = useRef(null);
   const groupImageInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+
+  // Intercept back button on mobile
+  useEffect(() => {
+    if (window.innerWidth >= 768) return;
+    if (!activeGroup) return;
+
+    // Push a dummy state to browser history
+    window.history.pushState({ isGroupChatOpen: true }, '');
+
+    const handlePopState = (event) => {
+      setActiveGroup(null);
+      setDrawerOpen(false);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [activeGroup]);
 
   // Fetch groups
   const fetchGroups = async () => {
@@ -874,7 +904,7 @@ const GroupChatPage = () => {
                 }`}
               >
                 <img
-                  src={g.groupImage ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${g.groupImage}` : `https://api.dicebear.com/7.x/initials/svg?seed=${g.groupName}`}
+                  src={getGroupImageUrl(g.groupImage, g.groupName)}
                   alt={g.groupName}
                   className="w-12 h-12 rounded-full object-cover border border-neutral-855"
                 />
@@ -896,12 +926,16 @@ const GroupChatPage = () => {
           
           {/* Header */}
           <div className="bg-burgundy/95 px-6 py-4 flex items-center justify-between border-b border-burgundy-dark/25 shadow-md z-10">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => {
-                  setActiveGroup(null);
-                  setDrawerOpen(false);
+                  if (window.innerWidth < 768) {
+                    window.history.back();
+                  } else {
+                    setActiveGroup(null);
+                    setDrawerOpen(false);
+                  }
                 }}
                 className="md:hidden p-1.5 -ml-2 text-secondary hover:bg-black/10 rounded-lg transition-colors shrink-0"
                 aria-label="Back to groups list"
@@ -909,24 +943,20 @@ const GroupChatPage = () => {
                 <ArrowLeft size={20} />
               </button>
               <img
-                src={
-                  activeGroup.groupImage
-                    ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${activeGroup.groupImage}`
-                    : `https://api.dicebear.com/7.x/initials/svg?seed=${activeGroup.groupName}`
-                }
+                src={getGroupImageUrl(activeGroup.groupImage, activeGroup.groupName)}
                 alt={activeGroup.groupName}
-                className="w-10 h-10 rounded-full object-cover border border-white/20"
+                className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
               />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-secondary text-sm font-semibold">{activeGroup.groupName}</h3>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="text-secondary text-sm font-semibold truncate flex-1">{activeGroup.groupName}</h3>
                   {activeKey && (
-                    <span className="flex items-center gap-0.5 text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold">
+                    <span className="flex items-center gap-0.5 text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold shrink-0">
                       <Shield size={10} /> Encrypted
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] text-secondary/80 block mt-0.5">
+                <span className="text-[10px] text-secondary/80 block mt-0.5 truncate">
                   {groupDetails?.Members?.length || 0} members
                 </span>
               </div>
@@ -1383,11 +1413,7 @@ const GroupChatPage = () => {
 
                 <div className="flex flex-col items-center gap-3">
                   <img
-                    src={
-                      groupDetails.groupImage
-                        ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${groupDetails.groupImage}`
-                        : `https://api.dicebear.com/7.x/initials/svg?seed=${groupDetails.groupName}`
-                    }
+                    src={getGroupImageUrl(groupDetails.groupImage, groupDetails.groupName)}
                     alt={groupDetails.groupName}
                     className="w-20 h-20 rounded-full object-cover border-2 border-neutral-750"
                   />
@@ -1707,7 +1733,7 @@ const GroupChatPage = () => {
                     <label key={group.id} className="flex items-center justify-between p-2 hover:bg-neutral-850 rounded-xl cursor-pointer">
                       <div className="flex items-center gap-3 min-w-0">
                         <img
-                          src={group.groupImage ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${group.groupImage}` : `https://api.dicebear.com/7.x/initials/svg?seed=${group.groupName}`}
+                          src={getGroupImageUrl(group.groupImage, group.groupName)}
                           alt={group.groupName}
                           className="w-8 h-8 rounded-full object-cover border border-neutral-800"
                         />
