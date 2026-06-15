@@ -947,7 +947,7 @@ const ChatPage = () => {
           </div>
 
           {/* Messages Stream Pane */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-4 bg-neutral-900/20">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 flex flex-col gap-4 bg-neutral-900/20">
             {messages.length === 0 ? (
               <div className="flex-1 flex items-center justify-center text-center p-8 flex-col gap-2">
                 <Smile size={32} className="text-neutral-600" />
@@ -972,7 +972,7 @@ const ChatPage = () => {
                 const voiceDuration = isVoiceNote ? parseInt(decMsg.split('||')[1] || '0', 10) : 0;
 
                 return (
-                  <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-start gap-3 group ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up`}>
+                  <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-start gap-3 w-full max-w-full group ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up`}>
                     {!isMe && (
                       <img
                         src={getAvatarUrl(msg.Sender?.profileImage, msg.Sender?.name)}
@@ -981,7 +981,7 @@ const ChatPage = () => {
                       />
                     )}
 
-                    <div className={`flex flex-col max-w-[70%] min-w-0 relative ${isMe ? 'items-end' : ''}`}>
+                    <div className={`flex flex-col max-w-[70%] min-w-0 shrink relative ${isMe ? 'items-end' : ''}`}>
                       <div className="flex items-center justify-between gap-1.5 mb-1 w-full min-w-0">
                         <span className="text-[10px] text-neutral-500 font-semibold flex-1 truncate">{msg.Sender?.name || 'User'}</span>
                         <span className="text-[9px] text-neutral-600 font-sans shrink-0">
