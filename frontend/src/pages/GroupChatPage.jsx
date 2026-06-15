@@ -1020,12 +1020,14 @@ const GroupChatPage = () => {
                 const voiceDuration = isVoiceNote ? parseInt(decMsg.split('||')[1] || '0', 10) : 0;
 
                 return (
-                  <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-start gap-3 w-full group ${isMe ? 'flex-row-reverse' : ''} animate-slide-up`}>
-                    <img
-                      src={getAvatarUrl(msg.Sender?.profileImage, msg.Sender?.name)}
-                      alt={msg.Sender?.name}
-                      className="w-8 h-8 rounded-full object-cover border border-neutral-800 shrink-0"
-                    />
+                  <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-start gap-3 group ${isMe ? 'justify-end' : 'justify-start'} animate-slide-up`}>
+                    {!isMe && (
+                      <img
+                        src={getAvatarUrl(msg.Sender?.profileImage, msg.Sender?.name)}
+                        alt={msg.Sender?.name}
+                        className="w-8 h-8 rounded-full object-cover border border-neutral-800 shrink-0"
+                      />
+                    )}
 
                     <div className={`flex flex-col max-w-[70%] min-w-0 ${isMe ? 'items-end' : ''}`}>
                       <div className="flex items-center justify-between gap-1.5 mb-1 w-full min-w-0">
@@ -1242,6 +1244,14 @@ const GroupChatPage = () => {
                         onToggle={(emoji) => handleToggleReaction(msg.id, emoji)}
                       />
                     </div>
+
+                    {isMe && (
+                      <img
+                        src={getAvatarUrl(msg.Sender?.profileImage, msg.Sender?.name)}
+                        alt={msg.Sender?.name}
+                        className="w-8 h-8 rounded-full object-cover border border-neutral-800 shrink-0"
+                      />
+                    )}
                   </div>
                 );
               })
