@@ -922,7 +922,7 @@ const GroupChatPage = () => {
 
       {/* Main Messaging Window */}
       {activeGroup ? (
-        <div className="flex-1 h-full flex flex-col justify-between bg-neutral-900/10 relative animate-slide-right md:animate-none">
+        <div className="flex-1 h-full min-w-0 max-w-full flex flex-col justify-between bg-neutral-900/10 relative animate-slide-right md:animate-none">
           
           {/* Header */}
           <div className="bg-burgundy/95 px-6 py-4 flex items-center justify-between border-b border-burgundy-dark/25 shadow-md z-10">
