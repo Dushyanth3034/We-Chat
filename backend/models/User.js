@@ -50,15 +50,6 @@ const User = sequelize.define('User', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  isVerified: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: true,
-  },
-  verificationToken: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
 }, {
   tableName: 'users',
 });

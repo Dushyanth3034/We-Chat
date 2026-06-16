@@ -74,34 +74,11 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = crypto.randomBytes(32).toString('hex');
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      isVerified: false,
-      verificationToken,
     });
-
-    // Simulate sending email
-    const verificationLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
-    const emailContent = `
-========================================
-VERIFICATION EMAIL SIMULATION
-To: ${user.name} (${user.email})
-Subject: Verify your WeChat Account
-Token: ${verificationToken}
-Link: ${verificationLink}
-Date: ${new Date().toISOString()}
-========================================
-`;
-    console.log(emailContent);
-    
-    const logDir = path.join(__dirname, '..', 'uploads');
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
-    }
-    fs.appendFileSync(path.join(logDir, 'verification_emails.log'), emailContent + '\n');
 
     const { data, dataUrl } = await generateUserQRCode(user.id, user.email, user.name);
     user.qrCode = dataUrl;
@@ -123,7 +100,6 @@ Date: ${new Date().toISOString()}
         bio: user.bio,
         profileImage: user.profileImage,
         qrCode: user.qrCode,
-        isVerified: user.isVerified,
       },
     });
   } catch (error) {
@@ -161,7 +137,6 @@ const login = async (req, res) => {
         bio: user.bio,
         profileImage: user.profileImage,
         qrCode: user.qrCode,
-        isVerified: user.isVerified,
       },
     });
   } catch (error) {
@@ -300,81 +275,11 @@ const googleLogin = async (req, res) => {
         bio: user.bio,
         profileImage: user.profileImage,
         qrCode: user.qrCode,
-        isVerified: user.isVerified,
       },
     });
   } catch (error) {
     console.error('Google Auth error:', error);
     return res.status(500).json({ message: 'Server error during Google Authentication.' });
-  }
-};
-
-const verifyEmail = async (req, res) => {
-  try {
-    const { token } = req.body;
-    if (!token) {
-      return res.status(400).json({ success: false, message: 'Verification token is required.' });
-    }
-
-    const user = await User.findOne({ where: { verificationToken: token } });
-    if (!user) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired verification token.' });
-    }
-
-    user.isVerified = true;
-    user.verificationToken = null;
-    await user.save();
-
-    return res.status(200).json({ success: true, message: 'Email verified successfully.' });
-  } catch (error) {
-    console.error('Verify email error:', error);
-    return res.status(500).json({ success: false, message: 'Server error during email verification.' });
-  }
-};
-
-const resendVerificationEmail = async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'Email is required.' });
-    }
-
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found.' });
-    }
-
-    if (user.isVerified) {
-      return res.status(400).json({ success: false, message: 'Email is already verified.' });
-    }
-
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    user.verificationToken = verificationToken;
-    await user.save();
-
-    const verificationLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
-    const emailContent = `
-========================================
-RESEND VERIFICATION EMAIL SIMULATION
-To: ${user.name} (${user.email})
-Subject: Verify your WeChat Account (New Code)
-Token: ${verificationToken}
-Link: ${verificationLink}
-Date: ${new Date().toISOString()}
-========================================
-`;
-    console.log(emailContent);
-    
-    const logDir = path.join(__dirname, '..', 'uploads');
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
-    }
-    fs.appendFileSync(path.join(logDir, 'verification_emails.log'), emailContent + '\n');
-
-    return res.status(200).json({ success: true, message: 'Verification email resent successfully.' });
-  } catch (error) {
-    console.error('Resend verification error:', error);
-    return res.status(500).json({ success: false, message: 'Server error resending verification email.' });
   }
 };
 
@@ -384,6 +289,4 @@ module.exports = {
   getMe,
   changePassword,
   googleLogin,
-  verifyEmail,
-  resendVerificationEmail,
 };

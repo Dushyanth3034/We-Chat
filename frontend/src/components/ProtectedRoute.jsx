@@ -22,9 +22,6 @@ const ProtectedRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user && user.isVerified === false) {
-    return <Navigate to="/verify-email" replace />;
-  }
 
   return (
     <div className="w-screen h-screen bg-darkBg text-white flex overflow-hidden">
