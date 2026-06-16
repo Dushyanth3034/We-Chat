@@ -182,6 +182,9 @@ const GroupChatPage = () => {
     window.history.pushState({ isGroupChatOpen: true }, '');
 
     const handlePopState = (event) => {
+      if (event.state && event.state.isGroupChatOpen) {
+        return;
+      }
       setActiveGroup(null);
       setDrawerOpen(false);
     };

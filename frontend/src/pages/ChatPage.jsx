@@ -168,6 +168,9 @@ const ChatPage = () => {
     window.history.pushState({ isChatOpen: true }, '');
 
     const handlePopState = (event) => {
+      if (event.state && event.state.isChatOpen) {
+        return;
+      }
       setActiveFriend(null);
     };
 
