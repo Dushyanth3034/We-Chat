@@ -1326,7 +1326,7 @@ const GroupChatPage = () => {
           )}
 
           {/* Chat Inputs Footer */}
-          <form onSubmit={handleSendMessage} className="bg-deepBg border-t border-neutral-800/80 p-4 flex flex-col gap-3 relative">
+          <form onSubmit={handleSendMessage} className="bg-deepBg border-t border-neutral-800/80 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex flex-col gap-3 relative w-full max-w-full min-w-0">
             <div className="flex items-center justify-between border-b border-neutral-800/40 pb-2">
               <div className="flex gap-2">
                 <button
@@ -1391,13 +1391,13 @@ const GroupChatPage = () => {
                 />
               </div>
             ) : (
-              <div className="flex gap-3">
+              <div className="flex gap-3 w-full max-w-full min-w-0">
                 <input
                   type="text"
                   placeholder="Send a message in group..."
                   value={inputText}
                   onChange={handleInputChange}
-                  className="flex-1 px-4 py-3 rounded-xl glass-input text-sm text-white"
+                  className="flex-1 min-w-0 px-4 py-3 rounded-xl glass-input text-sm text-white"
                 />
                 <button
                   type="submit"
