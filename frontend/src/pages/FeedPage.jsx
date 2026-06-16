@@ -253,7 +253,7 @@ const FeedPage = () => {
 
   const getPostImageUrl = (imgUrl) => {
     if (!imgUrl) return '';
-    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://') || imgUrl.startsWith('data:')) {
       return imgUrl;
     }
     return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${imgUrl}`;
@@ -373,6 +373,10 @@ const FeedPage = () => {
                               alt={`Moment Attachment ${idx + 1}`}
                               className="w-full aspect-square object-cover rounded-xl border border-neutral-850 cursor-zoom-in hover:scale-[1.02] transition-transform duration-300"
                               onClick={() => window.open(getPostImageUrl(imgUrl), '_blank')}
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://images.unsplash.com/photo-1594322436404-5a0526db4d13?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3';
+                              }}
                             />
                           ))}
                         </div>

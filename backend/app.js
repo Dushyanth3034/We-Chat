@@ -23,11 +23,20 @@ app.use(cors({
   origin: '*', // For testing purposes, allow all origins.
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Fallback for missing uploaded images: if an image in /uploads doesn't exist, redirect to a placeholder instead of "Cannot GET"
+app.use('/uploads', (req, res, next) => {
+  const ext = path.extname(req.path).toLowerCase();
+  if (['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].includes(ext)) {
+    return res.redirect('https://images.unsplash.com/photo-1594322436404-5a0526db4d13?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3');
+  }
+  next();
+});
 
 // Routes mapping
 app.use('/api/auth', authRoutes);

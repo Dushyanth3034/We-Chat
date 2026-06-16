@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { User, Friend, Post, Like, Comment, Notification } = require('../models');
 const { Op, fn, col } = require('sequelize');
 
@@ -7,7 +8,20 @@ const createPost = async (req, res) => {
 
     let imageList = [];
     if (req.files && req.files.length > 0) {
-      imageList = req.files.map((file) => `/uploads/${file.filename}`);
+      imageList = req.files.map((file) => {
+        const filePath = file.path;
+        try {
+          const fileBuffer = fs.readFileSync(filePath);
+          const base64 = fileBuffer.toString('base64');
+          const mimeType = file.mimetype;
+          // Delete local file immediately so it doesn't occupy space/leak on ephemeral disk
+          fs.unlinkSync(filePath);
+          return `data:${mimeType};base64,${base64}`;
+        } catch (fileErr) {
+          console.error('Error reading/processing file:', file.filename, fileErr);
+          return `/uploads/${file.filename}`; // Fallback to normal URL path if base64 conversion fails
+        }
+      });
     }
 
     if (!content && imageList.length === 0) {
