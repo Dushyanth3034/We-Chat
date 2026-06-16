@@ -208,7 +208,7 @@ const GroupChatPage = () => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.remove('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [emojiOpen]);
 
