@@ -152,6 +152,8 @@ const GroupChatPage = () => {
   // Feature specific states
   const [conversationKeys, setConversationKeys] = useState({}); // cacheKey -> keyStr
   const [activeKey, setActiveKey] = useState(null);
+  const [keyLoading, setKeyLoading] = useState(false);
+  const [keyLoadFailed, setKeyLoadFailed] = useState(false);
   const [decryptedMessages, setDecryptedMessages] = useState({}); // msg.id -> decryptedText
   const [decryptedFiles, setDecryptedFiles] = useState({}); // msg.id -> objectUrl
   
@@ -278,23 +280,45 @@ const GroupChatPage = () => {
 
   // Load E2E conversation key
   useEffect(() => {
-    if (!activeGroup || !user || user?.role === 'guest') return;
+    if (!activeGroup || !user) {
+      setKeyLoading(false);
+      setKeyLoadFailed(false);
+      return;
+    }
+    if (user?.role === 'guest') {
+      setActiveKey(null);
+      setKeyLoading(false);
+      setKeyLoadFailed(false);
+      return;
+    }
 
-    const loadConversationKey = async () => {
-      const cacheKey = `group_${activeGroup.id}`;
-      if (conversationKeys[cacheKey]) {
-        setActiveKey(conversationKeys[cacheKey]);
-        return;
-      }
+    const cacheKey = `group_${activeGroup.id}`;
+    if (conversationKeys[cacheKey]) {
+      setActiveKey(conversationKeys[cacheKey]);
+      setKeyLoading(false);
+      setKeyLoadFailed(false);
+      return;
+    }
 
+    let isMounted = true;
+    setKeyLoading(true);
+    setKeyLoadFailed(false);
+
+    const loadConversationKey = async (retryCount = 0) => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/e2e/conversation-key?groupId=${activeGroup.id}`);
         const myPrivKey = localStorage.getItem(`wechat_privkey_${user.id}`);
         if (myPrivKey) {
           const decryptedKey = await decryptConversationKey(res.data.encryptedKey, myPrivKey);
-          setActiveKey(decryptedKey);
-          setConversationKeys(prev => ({ ...prev, [cacheKey]: decryptedKey }));
+          if (isMounted) {
+            setActiveKey(decryptedKey);
+            setConversationKeys(prev => ({ ...prev, [cacheKey]: decryptedKey }));
+            setKeyLoading(false);
+            setKeyLoadFailed(false);
+          }
           return;
+        } else {
+          throw new Error('Private key not loaded in localStorage');
         }
       } catch (err) {
         if (err.response && err.response.status === 404) {
@@ -314,19 +338,49 @@ const GroupChatPage = () => {
 
             if (keysToStore.length > 0) {
               await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/e2e/conversation-key`, { keys: keysToStore });
-              setActiveKey(keyStr);
-              setConversationKeys(prev => ({ ...prev, [cacheKey]: keyStr }));
+              if (isMounted) {
+                setActiveKey(keyStr);
+                setConversationKeys(prev => ({ ...prev, [cacheKey]: keyStr }));
+                setKeyLoading(false);
+                setKeyLoadFailed(false);
+              }
+            } else {
+              throw new Error('No group members with public keys found');
             }
           } catch (negotiateErr) {
             console.error('Failed to negotiate group key:', negotiateErr);
+            handleError(retryCount, negotiateErr);
           }
         } else {
           console.error('Failed to load group conversation key:', err);
+          handleError(retryCount, err);
+        }
+      }
+    };
+
+    const handleError = (retryCount, error) => {
+      const maxRetries = 3;
+      if (retryCount < maxRetries) {
+        console.warn(`Retrying group key retrieval (${retryCount + 1}/${maxRetries}) due to error:`, error);
+        setTimeout(() => {
+          if (isMounted) {
+            loadConversationKey(retryCount + 1);
+          }
+        }, 500);
+      } else {
+        console.error('Group key loading permanently failed after retries.');
+        if (isMounted) {
+          setKeyLoading(false);
+          setKeyLoadFailed(true);
         }
       }
     };
 
     loadConversationKey();
+
+    return () => {
+      isMounted = false;
+    };
   }, [activeGroup, user]);
 
   // Decrypt group message texts
@@ -350,7 +404,7 @@ const GroupChatPage = () => {
                 decrypted[msg.id] = '[Decryption failed]';
                 changed = true;
               }
-            } else {
+            } else if (!keyLoading && keyLoadFailed) {
               decrypted[msg.id] = '[Encrypted message - Key not loaded]';
               changed = true;
             }
@@ -373,7 +427,7 @@ const GroupChatPage = () => {
                   decrypted[parent.id] = '[Decryption failed]';
                   changed = true;
                 }
-              } else {
+              } else if (!keyLoading && keyLoadFailed) {
                 decrypted[parent.id] = '[Encrypted message - Key not loaded]';
                 changed = true;
               }
@@ -391,7 +445,7 @@ const GroupChatPage = () => {
     if (messages.length > 0) {
       decryptAll();
     }
-  }, [messages, activeGroup, conversationKeys]);
+  }, [messages, activeGroup, conversationKeys, keyLoading, keyLoadFailed]);
 
   // Decrypt group message files
   useEffect(() => {
@@ -423,12 +477,13 @@ const GroupChatPage = () => {
     if (messages.length > 0 && activeGroup) {
       decryptAllFiles();
     }
-  }, [messages, activeGroup, conversationKeys]);
+  }, [messages, activeGroup, conversationKeys, keyLoading, keyLoadFailed]);
 
 
-  // Fetch group messages when active group changes
+  // Fetch group messages when active group changes, after key is loaded/validated
   useEffect(() => {
     if (!activeGroup) return;
+    if (keyLoading) return; // Wait until key loading finishes
 
     const fetchMessages = async () => {
       if (user?.role === 'guest') {
@@ -471,7 +526,7 @@ const GroupChatPage = () => {
         socket.emit('leave_group', activeGroup.id);
       }
     };
-  }, [activeGroup, socket, user]);
+  }, [activeGroup, socket, user, keyLoading]);
 
   // Listen to Socket.IO group events
   useEffect(() => {
@@ -1042,7 +1097,12 @@ const GroupChatPage = () => {
 
           {/* Group Messages Stream */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 flex flex-col gap-4 bg-neutral-900/20">
-            {messages.length === 0 ? (
+            {keyLoading ? (
+              <div className="flex-1 flex items-center justify-center text-center p-8 flex-col gap-3">
+                <div className="w-8 h-8 rounded-full border-4 border-burgundy border-t-transparent animate-spin"></div>
+                <p className="text-neutral-400 text-sm font-semibold animate-pulse">Loading secure chat...</p>
+              </div>
+            ) : messages.length === 0 ? (
               <div className="flex-1 flex items-center justify-center text-center p-8 flex-col gap-2">
                 <Users size={32} className="text-neutral-600" />
                 <p className="text-neutral-500 text-xs italic">No messages in group yet.</p>

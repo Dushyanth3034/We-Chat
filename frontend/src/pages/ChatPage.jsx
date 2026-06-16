@@ -140,6 +140,8 @@ const ChatPage = () => {
   // Feature specific states
   const [conversationKeys, setConversationKeys] = useState({}); // cacheKey -> keyStr
   const [activeKey, setActiveKey] = useState(null);
+  const [keyLoading, setKeyLoading] = useState(false);
+  const [keyLoadFailed, setKeyLoadFailed] = useState(false);
   const [decryptedMessages, setDecryptedMessages] = useState({}); // msg.id -> decryptedText
   const [decryptedFiles, setDecryptedFiles] = useState({}); // msg.id -> objectUrl
   
@@ -274,23 +276,45 @@ const ChatPage = () => {
 
   // Load E2E conversation key
   useEffect(() => {
-    if (!activeFriend || !user || user?.role === 'guest') return;
+    if (!activeFriend || !user) {
+      setKeyLoading(false);
+      setKeyLoadFailed(false);
+      return;
+    }
+    if (user?.role === 'guest') {
+      setActiveKey(null);
+      setKeyLoading(false);
+      setKeyLoadFailed(false);
+      return;
+    }
 
-    const loadConversationKey = async () => {
-      const cacheKey = `dm_${activeFriend.id}`;
-      if (conversationKeys[cacheKey]) {
-        setActiveKey(conversationKeys[cacheKey]);
-        return;
-      }
+    const cacheKey = `dm_${activeFriend.id}`;
+    if (conversationKeys[cacheKey]) {
+      setActiveKey(conversationKeys[cacheKey]);
+      setKeyLoading(false);
+      setKeyLoadFailed(false);
+      return;
+    }
 
+    let isMounted = true;
+    setKeyLoading(true);
+    setKeyLoadFailed(false);
+
+    const loadConversationKey = async (retryCount = 0) => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/e2e/conversation-key?friendId=${activeFriend.id}`);
         const myPrivKey = localStorage.getItem(`wechat_privkey_${user.id}`);
         if (myPrivKey) {
           const decryptedKey = await decryptConversationKey(res.data.encryptedKey, myPrivKey);
-          setActiveKey(decryptedKey);
-          setConversationKeys(prev => ({ ...prev, [cacheKey]: decryptedKey }));
+          if (isMounted) {
+            setActiveKey(decryptedKey);
+            setConversationKeys(prev => ({ ...prev, [cacheKey]: decryptedKey }));
+            setKeyLoading(false);
+            setKeyLoadFailed(false);
+          }
           return;
+        } else {
+          throw new Error('Private key not loaded in localStorage');
         }
       } catch (err) {
         if (err.response && err.response.status === 404) {
@@ -301,7 +325,12 @@ const ChatPage = () => {
             
             if (!friendPubKey) {
               console.warn('Friend has no public key, fallback to plaintext.');
-              setActiveKey(null);
+              if (isMounted) {
+                setActiveKey(null);
+                setConversationKeys(prev => ({ ...prev, [cacheKey]: null }));
+                setKeyLoading(false);
+                setKeyLoadFailed(false);
+              }
               return;
             }
 
@@ -321,19 +350,49 @@ const ChatPage = () => {
                 ]
               });
 
-              setActiveKey(keyStr);
-              setConversationKeys(prev => ({ ...prev, [cacheKey]: keyStr }));
+              if (isMounted) {
+                setActiveKey(keyStr);
+                setConversationKeys(prev => ({ ...prev, [cacheKey]: keyStr }));
+                setKeyLoading(false);
+                setKeyLoadFailed(false);
+              }
+            } else {
+              throw new Error('My keys or private key are missing');
             }
           } catch (negotiateErr) {
             console.error('Failed to negotiate key:', negotiateErr);
+            handleError(retryCount, negotiateErr);
           }
         } else {
           console.error('Failed to load conversation key:', err);
+          handleError(retryCount, err);
+        }
+      }
+    };
+
+    const handleError = (retryCount, error) => {
+      const maxRetries = 3;
+      if (retryCount < maxRetries) {
+        console.warn(`Retrying key retrieval (${retryCount + 1}/${maxRetries}) due to error:`, error);
+        setTimeout(() => {
+          if (isMounted) {
+            loadConversationKey(retryCount + 1);
+          }
+        }, 500);
+      } else {
+        console.error('Key loading permanently failed after retries.');
+        if (isMounted) {
+          setKeyLoading(false);
+          setKeyLoadFailed(true);
         }
       }
     };
 
     loadConversationKey();
+
+    return () => {
+      isMounted = false;
+    };
   }, [activeFriend, user]);
 
   // Decrypt message texts
@@ -357,7 +416,7 @@ const ChatPage = () => {
                 decrypted[msg.id] = '[Decryption failed]';
                 changed = true;
               }
-            } else {
+            } else if (!keyLoading && keyLoadFailed) {
               decrypted[msg.id] = '[Encrypted message - Key not loaded]';
               changed = true;
             }
@@ -380,7 +439,7 @@ const ChatPage = () => {
                   decrypted[parent.id] = '[Decryption failed]';
                   changed = true;
                 }
-              } else {
+              } else if (!keyLoading && keyLoadFailed) {
                 decrypted[parent.id] = '[Encrypted message - Key not loaded]';
                 changed = true;
               }
@@ -398,7 +457,7 @@ const ChatPage = () => {
     if (messages.length > 0) {
       decryptAll();
     }
-  }, [messages, activeFriend, conversationKeys]);
+  }, [messages, activeFriend, conversationKeys, keyLoading, keyLoadFailed]);
 
   // Decrypt message files
   useEffect(() => {
@@ -430,12 +489,13 @@ const ChatPage = () => {
     if (messages.length > 0 && activeFriend) {
       decryptAllFiles();
     }
-  }, [messages, activeFriend, conversationKeys]);
+  }, [messages, activeFriend, conversationKeys, keyLoading, keyLoadFailed]);
 
 
-  // Fetch messages when active friend changes
+  // Fetch messages when active friend changes, after key is loaded/validated
   useEffect(() => {
     if (!activeFriend) return;
+    if (keyLoading) return; // Wait until key loading finishes
     
     const fetchMessages = async () => {
       if (user?.role === 'guest') {
@@ -458,7 +518,7 @@ const ChatPage = () => {
     if (socket && user?.role !== 'guest') {
       socket.emit('message_read', { receiverId: user.id, senderId: activeFriend.id });
     }
-  }, [activeFriend, socket, user]);
+  }, [activeFriend, socket, user, keyLoading]);
 
   // Listen to Socket.IO events
   useEffect(() => {
@@ -994,7 +1054,12 @@ const ChatPage = () => {
 
           {/* Messages Stream Pane */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 flex flex-col gap-4 bg-neutral-900/20">
-            {messages.length === 0 ? (
+            {keyLoading ? (
+              <div className="flex-1 flex items-center justify-center text-center p-8 flex-col gap-3">
+                <div className="w-8 h-8 rounded-full border-4 border-burgundy border-t-transparent animate-spin"></div>
+                <p className="text-neutral-400 text-sm font-semibold animate-pulse">Loading secure chat...</p>
+              </div>
+            ) : messages.length === 0 ? (
               <div className="flex-1 flex items-center justify-center text-center p-8 flex-col gap-2">
                 <Smile size={32} className="text-neutral-600" />
                 <p className="text-neutral-500 text-xs italic">Say hello to start the conversation!</p>
