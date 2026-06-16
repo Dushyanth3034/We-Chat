@@ -61,6 +61,9 @@ const Register = () => {
   const handleGoogleLogin = () => {
     setError('');
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'google-client-id-placeholder';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    console.log('[Google OAuth Audit] Client ID:', clientId);
+    console.log('[Google OAuth Audit] API URL:', apiUrl);
     const redirectUri = encodeURIComponent(`${window.location.origin}/google-callback`);
     const scope = encodeURIComponent('openid profile email');
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;

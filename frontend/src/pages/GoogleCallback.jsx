@@ -13,9 +13,12 @@ const GoogleCallback = () => {
       try {
         // Google OAuth implicit grant returns parameters in the hash fragment, e.g. #access_token=ya29...
         const hash = window.location.hash;
+        console.log('[Google OAuth Audit Callback] Hash fragment retrieved:', hash ? '(present)' : '(empty)');
         const params = new URLSearchParams(hash.substring(1)); // remove the leading '#'
         const accessToken = params.get('access_token');
         const error = params.get('error');
+        console.log('[Google OAuth Audit Callback] Access token present:', !!accessToken);
+        console.log('[Google OAuth Audit Callback] Google Error param:', error);
 
         if (error) {
           throw new Error(error);
@@ -25,8 +28,10 @@ const GoogleCallback = () => {
           throw new Error('Access token not found in Google response.');
         }
 
+        const targetUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/google`;
+        console.log('[Google OAuth Audit Callback] Posting to backend endpoint:', targetUrl);
         // Authenticate the user directly on the callback page
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/google`, { accessToken });
+        const res = await axios.post(targetUrl, { accessToken });
         
         // Save the authentication state
         login(res.data.token, res.data.user);
