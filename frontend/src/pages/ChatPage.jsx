@@ -156,6 +156,8 @@ const ChatPage = () => {
   const chatBottomRef = useRef(null);
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const emojiButtonRef = useRef(null);
 
   // Intercept back button on mobile
   useEffect(() => {
@@ -175,6 +177,47 @@ const ChatPage = () => {
       window.removeEventListener('popstate', handlePopState);
     };
   }, [activeFriend]);
+
+  // Click outside to close emoji picker
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        emojiOpen &&
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target) &&
+        emojiButtonRef.current &&
+        !emojiButtonRef.current.contains(event.target)
+      ) {
+        setEmojiOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.remove('mousedown', handleClickOutside);
+    };
+  }, [emojiOpen]);
+
+  // Handle history back behavior for emoji open on mobile
+  useEffect(() => {
+    if (window.innerWidth >= 768) return;
+    if (!emojiOpen) return;
+    
+    // Push a state so that back button doesn't exit the chat immediately
+    window.history.pushState({ isEmojiOpen: true }, '');
+
+    const handlePopStateEmoji = (event) => {
+      setEmojiOpen(false);
+    };
+
+    window.addEventListener('popstate', handlePopStateEmoji);
+    return () => {
+      window.removeEventListener('popstate', handlePopStateEmoji);
+      // Clean up the pushed history state if the picker was closed manually
+      if (window.history.state?.isEmojiOpen) {
+        window.history.back();
+      }
+    };
+  }, [emojiOpen]);
 
   // Fetch Friends list
   useEffect(() => {
@@ -1353,6 +1396,7 @@ const ChatPage = () => {
 
                 {/* Emoji button */}
                 <button
+                  ref={emojiButtonRef}
                   type="button"
                   onClick={() => setEmojiOpen(!emojiOpen)}
                   className={`p-2 rounded-xl transition-all ${emojiOpen ? 'bg-primary/10 text-primary' : 'text-neutral-500 hover:text-white hover:bg-neutral-800'}`}
@@ -1375,17 +1419,33 @@ const ChatPage = () => {
 
             {/* Emoji Selector Panel */}
             {emojiOpen && (
-              <div className="absolute bottom-20 left-4 bg-neutral-900 border border-neutral-800 rounded-2xl p-3 shadow-xl max-h-40 overflow-y-auto grid grid-cols-8 gap-2 w-72 z-20">
-                {EMOJIS.map((emo, idx) => (
+              <div 
+                ref={emojiPickerRef}
+                className="absolute bottom-20 left-4 bg-neutral-900 border border-neutral-800 rounded-2xl p-3 shadow-xl z-20 w-72 flex flex-col gap-2"
+              >
+                <div className="flex justify-between items-center border-b border-neutral-800 pb-1.5 px-1 select-none">
+                  <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">Emojis</span>
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => addEmoji(emo)}
-                    className="text-lg hover:scale-125 transition-transform"
+                    onClick={() => setEmojiOpen(false)}
+                    className="p-1 hover:bg-neutral-800 text-neutral-500 hover:text-white rounded-lg transition-colors"
+                    title="Close"
                   >
-                    {emo}
+                    <X size={14} />
                   </button>
-                ))}
+                </div>
+                <div className="max-h-32 overflow-y-auto grid grid-cols-8 gap-2">
+                  {EMOJIS.map((emo, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => addEmoji(emo)}
+                      className="text-lg hover:scale-125 transition-transform"
+                    >
+                      {emo}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
