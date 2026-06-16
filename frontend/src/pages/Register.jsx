@@ -58,6 +58,33 @@ const Register = () => {
     navigate('/chats');
   };
 
+  useEffect(() => {
+    const handleOAuthMessage = async (event) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data?.type === 'GOOGLE_AUTH_SUCCESS') {
+        const accessToken = event.data.token;
+        setLoading(true);
+        setError('');
+        try {
+          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/google`, { accessToken });
+          login(res.data.token, res.data.user);
+          navigate('/chats');
+        } catch (err) {
+          console.error(err);
+          setError(err.response?.data?.message || 'Google authentication failed.');
+        } finally {
+          setLoading(false);
+        }
+      } else if (event.data?.type === 'GOOGLE_AUTH_FAILURE') {
+        setError(event.data.error || 'Google authentication failed.');
+      }
+    };
+
+    window.addEventListener('message', handleOAuthMessage);
+    return () => window.removeEventListener('message', handleOAuthMessage);
+  }, [login, navigate]);
+
   const handleGoogleLogin = () => {
     setError('');
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'google-client-id-placeholder';
@@ -65,7 +92,20 @@ const Register = () => {
     const scope = encodeURIComponent('openid profile email');
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
 
-    window.location.href = authUrl;
+    const width = 500;
+    const height = 600;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    const popup = window.open(
+      authUrl,
+      'Google Auth',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+
+    if (!popup) {
+      setError('Popup blocker is enabled. Please allow popups for this site.');
+    }
   };
 
   const handleSubmit = async (e) => {
